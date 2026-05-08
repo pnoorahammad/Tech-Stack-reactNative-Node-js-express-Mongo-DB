@@ -6,7 +6,11 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+      origin: [
+        process.env.CORS_ORIGIN,
+        'http://localhost:3000',
+        'https://tech-stack-react-native-node-js-exp.vercel.app'
+      ].filter(Boolean),
       methods: ['GET', 'POST'],
     },
     // Reconnection settings for reliability
