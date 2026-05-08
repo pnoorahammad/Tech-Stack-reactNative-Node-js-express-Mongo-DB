@@ -26,7 +26,7 @@ app.use(cors({
 // ── Rate Limiting ─────────────────────────────────────────────────────────────
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
+  max: parseInt(process.env.RATE_LIMIT_MAX) || 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
@@ -42,14 +42,33 @@ app.use(morgan('combined', {
   stream: { write: (msg) => logger.http(msg.trim()) },
 }));
 
-// ── Health Check ──────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// ── Welcome Routes ────────────────────────────────────────────────────────────
+app.get('/', (_req, res) => {
+  res.send('Welcome to ExpertConnect API. Use /api/experts or /api/bookings.');
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/experts', expertRoutes);
-app.use('/api/bookings', bookingRoutes);
+const apiRouter = express.Router();
+
+// Health & Info
+apiRouter.get('/', (_req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'ExpertConnect API v1.0.0 is online.',
+    endpoints: ['/experts', '/bookings', '/health'] 
+  });
+});
+
+apiRouter.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Resource Routes
+apiRouter.use('/experts', expertRoutes);
+apiRouter.use('/bookings', bookingRoutes);
+
+// Mount the API router
+app.use('/api', limiter, apiRouter);
 
 // ── Error Handling ────────────────────────────────────────────────────────────
 app.use(notFound);

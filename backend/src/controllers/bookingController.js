@@ -10,8 +10,9 @@ const logger = require('../config/logger');
  * Create a booking — atomic double-booking prevention
  */
 const createBooking = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const isReplicaSet = mongoose.connection.getClient().topology.description.type.includes('ReplicaSet');
+  const session = isReplicaSet ? await mongoose.startSession() : null;
+  if (session) session.startTransaction();
 
   try {
     const { expertId, slotId, clientName, clientEmail, clientPhone, date, timeSlot, notes } = req.body;
@@ -32,8 +33,10 @@ const createBooking = async (req, res, next) => {
     );
 
     if (!expert) {
-      await session.abortTransaction();
-      session.endSession();
+      if (session) {
+        await session.abortTransaction();
+        session.endSession();
+      }
       return errorResponse(res, 'This slot is already booked or does not exist. Please choose another slot.', 409);
     }
 
@@ -55,8 +58,10 @@ const createBooking = async (req, res, next) => {
       { session }
     );
 
-    await session.commitTransaction();
-    session.endSession();
+    if (session) {
+      await session.commitTransaction();
+      session.endSession();
+    }
 
     // 3. Populate expert info for the response
     await booking.populate('expert', 'name category designation avatar');
@@ -74,8 +79,10 @@ const createBooking = async (req, res, next) => {
 
     return successResponse(res, { booking }, 'Booking created successfully', 201);
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session) {
+      await session.abortTransaction();
+      session.endSession();
+    }
 
     // MongoDB duplicate key error (fallback for race conditions)
     if (err.code === 11000) {

@@ -28,9 +28,18 @@ const AvatarEl = ({ name, avatar, size }) => {
 };
 
 const ExpertCard = ({ expert, onClick }) => (
-  <div className="expert-card" onClick={onClick} role="button" tabIndex={0}
+  <motion.div 
+    className="expert-card" 
+    onClick={onClick} 
+    role="button" 
+    tabIndex={0}
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    whileHover={{ y: -5, transition: { duration: 0.2 } }}
     onKeyDown={e => e.key === 'Enter' && onClick()}
-    aria-label={`View ${expert.name}'s profile`}>
+    aria-label={`View ${expert.name}'s profile`}
+  >
     <div className="card-header">
       <AvatarEl name={expert.name} avatar={expert.avatar} />
       <div>
@@ -55,21 +64,15 @@ const ExpertCard = ({ expert, onClick }) => (
       <div className="rate">${expert.hourlyRate}<span>/hr</span></div>
       <button className="btn btn-primary btn-sm" tabIndex={-1}>Book Session</button>
     </div>
-  </div>
+  </motion.div>
 );
+
+import { ExpertSkeleton } from '../components/Skeleton';
 
 const LoadingGrid = () => (
   <div className="experts-grid">
-    {Array.from({ length: 9 }).map((_, i) => (
-      <div key={i} className="expert-card" style={{ opacity: 0.4, pointerEvents: 'none' }}>
-        <div className="card-header">
-          <div className="avatar" style={{ background: 'var(--bg-surface)' }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ height: 14, background: 'var(--bg-surface)', borderRadius: 4, marginBottom: 8, width: '70%' }} />
-            <div style={{ height: 11, background: 'var(--bg-surface)', borderRadius: 4, width: '50%' }} />
-          </div>
-        </div>
-      </div>
+    {Array.from({ length: 6 }).map((_, i) => (
+      <ExpertSkeleton key={i} />
     ))}
   </div>
 );

@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_RAW = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Remove trailing slash if present to avoid double-slash issues in requests
+const API_BASE = API_BASE_RAW.endsWith('/') ? API_BASE_RAW.slice(0, -1) : API_BASE_RAW;
 
 const api = axios.create({
   baseURL: API_BASE,

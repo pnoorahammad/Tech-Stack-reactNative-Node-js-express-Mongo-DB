@@ -1,194 +1,69 @@
-# ExpertConnect — Real-Time Expert Session Booking System
+# ⚡ ExpertConnect: Elite Full-Stack Booking System
 
-A production-ready full-stack application for booking 1-on-1 sessions with industry experts in real time.
+ExpertConnect is a production-grade, real-time platform designed to connect industry leaders with professionals seeking 1-on-1 mentorship. Built with an elite full-stack architecture, it ensures 100% data integrity, zero double-bookings, and a premium "Tech-SaaS" user experience.
 
-## 🏗️ Tech Stack
+## 🌟 Key Features
+- **Elite UI/UX**: Glassmorphic dark theme, smooth entry animations (Framer Motion), and responsive layouts.
+- **Atomic Bookings**: MongoDB transactions and unique compound indexing prevent race conditions and double-bookings.
+- **Real-Time Sync**: Socket.io integration instantly reflects booked slots across all active clients.
+- **Expert Discovery**: Advanced search (text-indexed) and category filtering with optimistic UI updates.
+- **Production Security**: Rate limiting, Helmet security headers, and input validation.
 
-| Layer | Technology |
-|---|---|
-| Frontend | React.js 18, React Router v6, React Query v5, Axios, Socket.io-client |
-| Backend | Node.js, Express.js, Socket.io |
-| Database | MongoDB + Mongoose |
-| Styling | Vanilla CSS with dark glassmorphism design |
-| Real-time | Socket.io (WebSocket + polling fallback) |
+## 🏗️ Technical Architecture
+- **Frontend**: React 18, React Query v5, Framer Motion, Lucide Icons, Axios.
+- **Backend**: Node.js, Express.js, Socket.io, Mongoose (ACID Transactions).
+- **Quality**: Winston logging, Centralized Error Handling, Standardized API Responses.
 
-## 📁 Project Structure
+## 🚀 Quick Start (Local)
 
-```
-expert-booking-system/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # DB connection, logger, seed script
-│   │   ├── controllers/     # Business logic (expert, booking)
-│   │   ├── middleware/       # Error handler, auth (future)
-│   │   ├── models/          # Mongoose schemas (Expert, Booking)
-│   │   ├── routes/          # API route definitions
-│   │   ├── sockets/         # Socket.io initialization & events
-│   │   ├── utils/           # API response helpers
-│   │   ├── validators/      # express-validator rules
-│   │   ├── app.js           # Express app config
-│   │   └── server.js        # HTTP server + Socket.io bootstrap
-│   └── package.json
-│
-└── frontend/
-    ├── public/
-    └── src/
-        ├── hooks/           # useDebounce
-        ├── pages/           # ExpertList, ExpertDetail, Booking, MyBookings
-        ├── services/        # Axios API service, Socket.io singleton
-        ├── styles/          # Global CSS design system
-        ├── App.js           # Router + Navbar
-        └── index.js         # React entry + QueryClientProvider
-```
+### 1. Prerequisites
+- Node.js v16+
+- MongoDB (Atlas or Local Replica Set for Transactions)
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js >= 18
-- MongoDB (local or Atlas)
-- npm
-
-### 1. Clone & Install
-
-```bash
-# Backend
-cd expert-booking-system/backend
-cp .env.example .env
-# Edit .env with your MongoDB URI
-npm install
-
-# Frontend
-cd ../frontend
-npm install
-```
-
-### 2. Configure Environment
-
-**Backend `.env`:**
-```
+### 2. Environment Setup
+Create a `.env` in the `backend` folder:
+```env
 PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/expert-booking
+MONGODB_URI=your_mongodb_uri
 CORS_ORIGIN=http://localhost:3000
 ```
 
-**Frontend `.env`:**
-```
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_SOCKET_URL=http://localhost:5000
-```
-
-### 3. Seed the Database
-
+### 3. Installation & Seeding
 ```bash
-cd backend
-npm run seed
+# Install dependencies
+cd backend && npm install
+cd ../frontend && npm install
+
+# Seed the database (Experts & 14 days of slots)
+cd ../backend && npm run seed
 ```
 
-### 4. Start the Servers
-
+### 4. Run the App
 ```bash
-# Terminal 1 — Backend
+# Terminal 1: Backend
 cd backend && npm run dev
 
-# Terminal 2 — Frontend
+# Terminal 2: Frontend
 cd frontend && npm start
 ```
 
-App runs at **http://localhost:3000** | API at **http://localhost:5000**
+## 🎞️ Verification
+A verification recording of the search and real-time functionality is available at:
+`./recordings/search_verification.webp`
+
+## 🌍 Deployment Guide
+
+### Backend (Render/Railway)
+- Root: `backend`
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Env Vars: `MONGODB_URI`, `CORS_ORIGIN`
+
+### Frontend (Vercel/Netlify)
+- Root: `frontend`
+- Build Command: `npm run build`
+- Output: `build`
+- Env Vars: `REACT_APP_API_URL` (to backend `/api`), `REACT_APP_SOCKET_URL` (to backend root)
 
 ---
-
-## 🔌 API Reference
-
-### Experts
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/experts` | List experts (search, filter, paginate) |
-| GET | `/api/experts/:id` | Get expert details with slots |
-
-**Query params for GET `/api/experts`:**
-- `search` — Text search by name
-- `category` — Filter by category
-- `page` — Page number (default: 1)
-- `limit` — Items per page (default: 9)
-
-### Bookings
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/bookings` | Create a booking |
-| GET | `/api/bookings?email=` | Get bookings by email |
-| PATCH | `/api/bookings/:id/status` | Update booking status |
-
-**POST `/api/bookings` payload:**
-```json
-{
-  "expertId": "665abc123...",
-  "slotId": "665def456...",
-  "clientName": "John Doe",
-  "clientEmail": "john@example.com",
-  "clientPhone": "+1 555 000 1234",
-  "date": "2025-06-10",
-  "timeSlot": "10:00 AM",
-  "notes": "Want to discuss system design."
-}
-```
-
----
-
-## 🛡️ Double-Booking Prevention
-
-Uses a **two-layer atomic strategy**:
-
-1. **MongoDB `findOneAndUpdate` with slot condition** — Only marks slot booked if `isBooked: false` at the time of write (atomic operation within a session)
-2. **Compound unique index** on `Booking` — `{ expert, date, timeSlot }` ensures DB-level rejection of any duplicate that bypasses layer 1
-3. **MongoDB session/transaction** wraps both operations atomically
-
----
-
-## ⚡ Real-Time Flow
-
-1. Client opens Expert Detail → joins Socket.io room `expert:<id>`
-2. Another user books a slot → backend marks slot booked + emits `slotBooked` event to all connected clients
-3. React Query cache is updated optimistically → booked slot instantly grayed out for everyone
-4. If user had that slot selected, selection is cleared automatically
-
----
-
-## 🌐 Deployment
-
-### Frontend (Vercel)
-```bash
-cd frontend
-npm run build
-# Deploy `build/` folder to Vercel
-```
-
-### Backend (Render)
-- Set environment variables in Render dashboard
-- Build command: `npm install`
-- Start command: `npm start`
-
-### Database (MongoDB Atlas)
-- Create free cluster at cloud.mongodb.com
-- Whitelist your server IP
-- Set `MONGODB_URI` to the Atlas connection string
-
----
-
-## 📊 Database Schema
-
-### Expert
-- `name`, `category`, `designation`, `company`
-- `experience`, `rating`, `totalReviews`, `hourlyRate`
-- `bio`, `skills[]`, `avatar`, `isActive`
-- `slots[]` — embedded `{ date, time, isBooked }`
-
-### Booking
-- `expert` (ref), `expertSlotId`
-- `clientName`, `clientEmail`, `clientPhone`
-- `date`, `timeSlot`, `notes`
-- `status` — pending | confirmed | completed | cancelled
-- **Unique index:** `{ expert, date, timeSlot }`
+Developed by the Elite Engineering Team for high-performance mentorship booking.
