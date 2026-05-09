@@ -2,10 +2,20 @@ const mongoose = require('mongoose');
 const logger = require('./logger');
 
 const connectDB = async () => {
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/expert-booking';
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) {
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('CRITICAL ERROR: MONGODB_URI environment variable is missing in production.');
+      console.error('You must configure MONGODB_URI in your Render dashboard.');
+      process.exit(1);
+    }
+  }
+  
+  const finalUri = uri || 'mongodb://localhost:27017/expert-booking';
 
   try {
-    await mongoose.connect(uri, {
+    await mongoose.connect(finalUri, {
       serverSelectionTimeoutMS: 5000,
     });
     console.log("MongoDB Connected");
