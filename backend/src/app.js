@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 
 const expertRoutes = require('./routes/expertRoutes');
@@ -14,7 +13,6 @@ const app = express();
 
 // ── Security Middleware ───────────────────────────────────────────────────────
 app.use(helmet());
-app.use(mongoSanitize()); // prevent NoSQL injection
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
@@ -45,7 +43,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
 });
-app.use('/api/', limiter);
+// The limiter will be applied to the /api routes below
 
 // ── Body Parsing ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }));

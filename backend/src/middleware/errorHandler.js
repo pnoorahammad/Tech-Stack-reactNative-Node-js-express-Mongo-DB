@@ -7,23 +7,16 @@ const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    statusCode = 422;
-    message = Object.values(err.errors).map((e) => e.message).join(', ');
-  }
-
-  // Mongoose cast error (invalid ObjectId)
-  if (err.name === 'CastError') {
-    statusCode = 400;
-    message = `Invalid ${err.path}: ${err.value}`;
-  }
-
-  // MongoDB duplicate key
-  if (err.code === 11000) {
+  // Postgres Unique Constraint Violation
+  if (err.code === '23505') {
     statusCode = 409;
-    const field = Object.keys(err.keyValue).join(', ');
-    message = `Duplicate value for field(s): ${field}`;
+    message = `Duplicate value error. This resource already exists or conflicts with another.`;
+  }
+
+  // Postgres Invalid UUID / Input
+  if (err.code === '22P02') {
+    statusCode = 400;
+    message = `Invalid input format.`;
   }
 
   logger.error(`[${statusCode}] ${message}`, {

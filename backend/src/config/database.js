@@ -1,38 +1,23 @@
-const mongoose = require('mongoose');
+const { createClient } = require('@supabase/supabase-js');
 const logger = require('./logger');
 
-const connectDB = async () => {
-  const uri = process.env.MONGODB_URI;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
-  if (!uri) {
-    if (process.env.NODE_ENV === 'production') {
-      logger.error('CRITICAL ERROR: MONGODB_URI environment variable is missing in production.');
-      console.error('You must configure MONGODB_URI in your Render dashboard.');
-      process.exit(1);
-    }
-  }
-  
-  const finalUri = uri || 'mongodb://localhost:27017/expert-booking';
-
-  try {
-    await mongoose.connect(finalUri, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    console.log("MongoDB Connected");
-    logger.info(`✅ MongoDB connected: ${mongoose.connection.host}`);
-  } catch (err) {
-    console.error(err);
-    logger.error('MongoDB connection error:', err);
+if (!supabaseUrl || !supabaseKey) {
+  if (process.env.NODE_ENV === 'production') {
+    logger.error('CRITICAL ERROR: SUPABASE_URL or SUPABASE_ANON_KEY missing in production.');
+    console.error('You must configure Supabase credentials in your Render dashboard.');
     process.exit(1);
+  } else {
+    logger.warn('Supabase credentials missing. Ensure .env is configured.');
   }
+}
 
-  mongoose.connection.on('error', (err) => {
-    logger.error('MongoDB connection error:', err);
-  });
+// Create a single supabase client for interacting with your database
+const supabase = createClient(
+  supabaseUrl || 'https://ojibuhaovoohpzmorsek.supabase.co',
+  supabaseKey || 'sb_publishable_bCVStqQKXoxLmDZngGhQUg_EW1ZohXf'
+);
 
-  mongoose.connection.on('disconnected', () => {
-    logger.warn('MongoDB disconnected');
-  });
-};
-
-module.exports = { connectDB };
+module.exports = { supabase };
