@@ -9,7 +9,7 @@
     "seed": "node src/config/seed.js"
   },
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
