@@ -7,6 +7,18 @@ const logger = require('./config/logger');
 
 const PORT = process.env.PORT || 5000;
 
+process.on('uncaughtException', (err) => {
+  logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  logger.error(err.name, err.message, err.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+  logger.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  logger.error(err.name, err.message, err.stack);
+  // Optional: you can exit here or leave it running depending on severity
+});
+
 // Connect to MongoDB then start server
 connectDB().then(() => {
   const server = http.createServer(app);
